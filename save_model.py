@@ -1,13 +1,28 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
-import joblib
+import pickle
 import os
 
+# Simple Linear Regression class using numpy
+class SimpleLinearRegression:
+    def __init__(self):
+        self.coef_ = None
+        self.intercept_ = None
+    
+    def fit(self, X, y):
+        # Add bias column
+        X_with_bias = np.column_stack([np.ones(X.shape[0]), X])
+        # Normal equation: θ = (X^T X)^(-1) X^T y
+        theta = np.linalg.pinv(X_with_bias.T @ X_with_bias) @ X_with_bias.T @ y
+        self.intercept_ = theta[0]
+        self.coef_ = theta[1:]
+        return self
+    
+    def predict(self, X):
+        return X @ self.coef_ + self.intercept_
+
 CSV = 'boston_house_prices.csv'
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model.joblib')
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model.pkl')
 
 
 def main():
@@ -16,21 +31,19 @@ def main():
     if 'MEDV' not in df.columns:
         raise RuntimeError('CSV must contain MEDV column')
 
-    X = df.drop('MEDV', axis=1)
-    y = df['MEDV']
+    X = df.drop('MEDV', axis=1).values
+    y = df['MEDV'].values
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=5)
+    # Train simple model
+    lm = SimpleLinearRegression()
+    lm.fit(X, y)
 
-    lm = LinearRegression()
-    lm.fit(X_train, y_train)
+    # Test prediction
+    pred = lm.predict(X[:5])
+    print(f'Model trained. Sample predictions: {pred[:3]}')
 
-    y_pred = lm.predict(X_test)
-    mse = mean_squared_error(y_test, y_pred)
-    r2 = r2_score(y_test, y_pred)
-
-    print(f'Model trained. MSE={mse:.4f}  R2={r2:.4f}')
-
-    joblib.dump(lm, MODEL_PATH)
+    with open(MODEL_PATH, 'wb') as f:
+        pickle.dump(lm, f)
 
     print(f'Model saved to {MODEL_PATH}')
 

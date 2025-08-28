@@ -1,15 +1,31 @@
 from flask import Flask, render_template, request
 import numpy as np
-import joblib
+import pickle
 import os
-import urllib.request
 
 # Flask app to serve house price predictions
 app = Flask(__name__)
 
-# URL to model file on cloud (thay bằng link thực tế)
-MODEL_URL = "https://drive.google.com/uc?export=download&id=YOUR_GOOGLE_DRIVE_FILE_ID"
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model.joblib')
+# Simple Linear Regression class using numpy
+class SimpleLinearRegression:
+    def __init__(self):
+        self.coef_ = None
+        self.intercept_ = None
+    
+    def fit(self, X, y):
+        # Add bias column
+        X_with_bias = np.column_stack([np.ones(X.shape[0]), X])
+        # Normal equation: θ = (X^T X)^(-1) X^T y
+        theta = np.linalg.pinv(X_with_bias.T @ X_with_bias) @ X_with_bias.T @ y
+        self.intercept_ = theta[0]
+        self.coef_ = theta[1:]
+        return self
+    
+    def predict(self, X):
+        return X @ self.coef_ + self.intercept_
+
+# Path to model file  
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model.pkl')
 
 # Feature names for the Boston house-prices dataset (used by the form)
 FEATURE_NAMES = [
@@ -52,17 +68,14 @@ SAMPLE_VALUES = {
 }
 
 # Path to model file
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model.joblib')
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model.pkl')
 
 
 def load_model():
 	if not os.path.exists(MODEL_PATH):
-		# Download model from cloud if not exists
-		try:
-			urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
-		except:
-			return None
-	return joblib.load(MODEL_PATH)
+		return None
+	with open(MODEL_PATH, 'rb') as f:
+		return pickle.load(f)
 
 
 model = load_model()
