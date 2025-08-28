@@ -9,24 +9,27 @@ MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model.pkl')
 
 
 def main():
+    """Train and save the linear regression model"""
+    # Load data
     df = pd.read_csv(CSV)
-    # Expect last column MEDV as price
     if 'MEDV' not in df.columns:
         raise RuntimeError('CSV must contain MEDV column')
 
     X = df.drop('MEDV', axis=1).values
     y = df['MEDV'].values
 
-    # Train simple model
-    lm = SimpleLinearRegression()
-    lm.fit(X, y)
+    # Train model
+    model = SimpleLinearRegression()
+    model.fit(X, y)
 
     # Test prediction
-    pred = lm.predict(X[:5])
-    print(f'Model trained. Sample predictions: {pred[:3]}')
+    pred = model.predict(X[:5])
+    print(f'Model trained successfully!')
+    print(f'Sample predictions: {pred[:3]}')
 
+    # Save model
     with open(MODEL_PATH, 'wb') as f:
-        pickle.dump(lm, f)
+        pickle.dump(model, f)
 
     print(f'Model saved to {MODEL_PATH}')
 
