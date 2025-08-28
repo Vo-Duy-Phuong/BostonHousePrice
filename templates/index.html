@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Boston House Price Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body class="bg-light">
+    <div class="container py-5">
+      <div class="card shadow-sm mx-auto card-width">
+        <div class="card-body">
+          <h1 class="card-title text-center mb-3">Dự đoán giá nhà - Boston</h1>
+          <p class="text-muted text-center">Nhập các thuộc tính của ngôi nhà để dự đoán giá trung bình (MEDV).</p>
+
+          <form method="post" action="/predict" id="predict-form">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <button type="button" id="fill-sample" class="btn btn-outline-success btn-sm me-2">Dùng mẫu</button>
+                <button type="button" id="clear-sample" class="btn btn-outline-secondary btn-sm">Xóa mẫu</button>
+              </div>
+              <div class="text-muted small">Bạn có thể chỉnh từng trường sau khi dùng mẫu.</div>
+            </div>
+            <div class="row gx-3 gy-2">
+              {% for feat in features %}
+              <div class="col-md-6 mb-2">
+                <label class="form-label fw-semibold small text-dark">{{ feat }}</label>
+                <input name="{{ feat }}" type="text" class="form-control form-control-sm" placeholder="Nhập {{ feat }}" />
+                {% if labels and feat in labels %}
+                <div class="form-text text-muted small">{{ labels[feat] }}</div>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+
+            <div class="d-flex justify-content-center mt-4">
+              <button class="btn btn-primary btn-sm px-4 py-2" type="submit">Dự đoán</button>
+            </div>
+          </form>
+
+          <hr />
+          <p class="small text-center text-muted">Mẫu có thể dùng giá trị trung bình nếu để trống.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script>
+    // Sample values passed from server-side
+    const samples = {{ samples | tojson | safe }};
+
+    function fillSample() {
+      for (const key in samples) {
+        const el = document.querySelector(`[name="${key}"]`);
+        if (el) el.value = samples[key];
+      }
+    }
+
+    function clearSample() {
+      const inputs = document.querySelectorAll('#predict-form input[name]');
+      inputs.forEach(i => i.value = '');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const fillBtn = document.getElementById('fill-sample');
+      const clearBtn = document.getElementById('clear-sample');
+      fillBtn && fillBtn.addEventListener('click', fillSample);
+      clearBtn && clearBtn.addEventListener('click', clearSample);
+    });
+  </script>
+</html>
