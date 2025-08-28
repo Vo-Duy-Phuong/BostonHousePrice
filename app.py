@@ -2,9 +2,14 @@ from flask import Flask, render_template, request
 import numpy as np
 import joblib
 import os
+import urllib.request
 
 # Flask app to serve house price predictions
 app = Flask(__name__)
+
+# URL to model file on cloud (thay bằng link thực tế)
+MODEL_URL = "https://drive.google.com/uc?export=download&id=YOUR_GOOGLE_DRIVE_FILE_ID"
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model.joblib')
 
 # Feature names for the Boston house-prices dataset (used by the form)
 FEATURE_NAMES = [
@@ -52,7 +57,11 @@ MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model.joblib')
 
 def load_model():
 	if not os.path.exists(MODEL_PATH):
-		return None
+		# Download model from cloud if not exists
+		try:
+			urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+		except:
+			return None
 	return joblib.load(MODEL_PATH)
 
 
