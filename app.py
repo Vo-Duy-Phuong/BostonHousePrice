@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 import numpy as np
-import pickle
+import joblib
 import os
 
 # Flask app to serve house price predictions
@@ -47,14 +47,13 @@ SAMPLE_VALUES = {
 }
 
 # Path to model file
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model.pkl')
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model.joblib')
 
 
 def load_model():
 	if not os.path.exists(MODEL_PATH):
 		return None
-	with open(MODEL_PATH, 'rb') as f:
-		return pickle.load(f)
+	return joblib.load(MODEL_PATH)
 
 
 model = load_model()
